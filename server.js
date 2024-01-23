@@ -89,6 +89,7 @@ app.get('/loggedIn', (req, res) => {
     return(res.send({message:'You are logged in.'}));
   });
 
+
 app.get('/logout', (req, res) => {
     let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     ipUserMap.delete(ip);
