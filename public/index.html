@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login Page</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+    <div id="loginArea">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label for="username">Username:</label><br>
+            <input type="text" id="username" name="username" autocomplete="username"><br>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password" autocomplete="current-password"><br>
+            <br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+    <div id="logoutArea" style="display: none;">
+        <form id="logoutForm">
+            <input type="submit" value="Logout">
+        </form>
+    </div>
+
+    <div id="contentArea">
+
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#logoutForm').on('submit', function (e) {
+                e.preventDefault();
+                //logout from the server
+                fetch('/logout')
+                    .then(response => {
+                        let r = response;
+
+                        return r.json();
+                    })
+                    .then(data => {
+                        //console.log('data = ', data)
+                        if (!data.status == 'ok') {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        console.log(data.message); // Logs 'You are logged out.'
+                        document.getElementById('contentArea').innerHTML = '';
+
+                        document.getElementById('logoutArea').style.display = 'none';
+                        document.getElementById('loginArea').style.display = 'block';
+                    })
+                    .catch(error => console.error('Error:', error));
+
+
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#loginForm').on('submit', function (e) {
+                let username = $('#username').val();
+                let password = $('#password').val();
+                e.preventDefault();
+                //login to the server
+                fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        let r = response;
+                        return r.json();
+                    })
+                    .then(data => {
+                        //console.log('r.message = ', data.message)
+                        if (data.message == "User not found or incorrect password.") {
+                            throw new Error(` ${data.message}`);
+                        }
+                        //Clear the form   
+                        document.getElementById('username').value = '';
+                        document.getElementById('password').value = '';
+                        document.getElementById('loginArea').style.display = 'none';
+                        document.getElementById('logoutArea').style.display = 'block';
+                        // Display the message on the webpage
+                        let messageElement = document.createElement('p'); // Create a new paragraph element
+                        messageElement.textContent = `Hello, ${username}. ${data.message}`; // Set the text content of the paragraph
+                        let divElement = document.getElementById('contentArea')
+                        divElement.innerHTML = '';
+                        divElement.appendChild(messageElement); // Append the paragraph to the contentArea
+
+                    })
+                    .catch(error => {
+                        //console.log('Error:', error);
+                        let divElement = document.getElementById('contentArea').innerHTML = error;
+                    });
+            });
+        });
+    </script>
+</body>
+
+</html>
